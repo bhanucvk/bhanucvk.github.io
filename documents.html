@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documents</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+  h1 { color: #333; }
+  .doc-list { list-style: none; padding: 0; }
+  .doc-list li { margin: 10px 0; }
+  a { text-decoration: none; color: #007bff; }
+  a:hover { text-decoration: underline; }
+  #dropZone {
+    border: 2px dashed #007bff; padding: 30px; text-align: center;
+    margin-top: 20px; background: #e9f5ff; border-radius: 10px;
+  }
+  #dropZone.dragover { background: #d1ecf1; }
+  #tokenInput { width: 100%; padding: 8px; margin: 10px 0; }
+  #uploadSection { display: none; margin-top: 20px; }
+  #loginSection { background: #fff3cd; padding: 10px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<h1>📄 Documents</h1>
+
+<ul class="doc-list" id="docList"></ul>
+
+<!-- Admin Login -->
+<div id="loginSection">
+  <h3>🔑 Admin Login</h3>
+  <input type="password" id="adminPass" placeholder="Enter admin password">
+  <button onclick="checkAdmin()">Login</button>
+</div>
+
+<!-- Upload Section (Hidden until login) -->
+<div id="uploadSection">
+  <h2>Upload Documents</h2>
+  <p>Paste your GitHub personal access token (with <code>repo</code> scope) to upload files:</p>
+  <input type="password" id="tokenInput" placeholder="GitHub Personal Access Token">
+  <div id="dropZone">Drag & Drop documents here, or click to select</div>
+  <input type="file" id="fileInput" multiple style="display:none">
+</div>
+
+<script>
+const username = "bhanucvk"; // Replace
+const repo = "CBPAI Assignments"; // Replace
+const branch = "main"; // Replace if different
+const docsPath = "docs";
+const adminPassword = "Adity@882002"; // Change this
+const apiBase = `https://api.github.com/repos/${username}/${repo}/contents/${docsPath}`;
+
+const docList = document.getElementById('docList');
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const tokenInput = document.getElementById('tokenInput');
+const uploadSection = document.getElementById('uploadSection');
+const loginSection = document.getElementById('loginSection');
+
+// Fetch documents
+function loadDocuments() {
+  fetch(apiBase)
+    .then(res => res.json())
+    .then(files => {
+      docList.innerHTML = "";
+      files.forEach(file => {
+        if (file.type === "file") {
+          const li = document.createElement('li');
+          const link = document.createElement('a');
+          link.href = file.download_url;
+          link.textContent = file.name;
+          link.target = "_blank";
+          li.appendChild(link);
+          docList.appendChild(li);
+        }
+      });
+    })
+    .catch(() => docList.innerHTML = "<li>Unable to load documents</li>");
+}
+loadDocuments();
+
+// Admin check
+function checkAdmin() {
+  const pass = document.getElementById('adminPass').value;
+  if (pass === adminPassword) {
+    loginSection.style.display = 'none';
+    uploadSection.style.display = 'block';
+  } else {
+    alert("Incorrect password.");
+  }
+}
+
+// Upload file
+async function uploadFile(file) {
+  const token = tokenInput.value.trim();
+  if (!token) {
+    alert("Please enter your GitHub token first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const content = reader.result.split(",")[1];
+    const url = `${apiBase}/${file.name}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Add ${file.name}`,
+        content: content,
+        branch: branch
+      })
+    });
+    if (res.ok) {
+      alert(`${file.name} uploaded successfully!`);
+      loadDocuments();
+    } else {
+      const err = await res.json();
+      alert("Upload failed: " + JSON.stringify(err));
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// Drag-and-drop handlers
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => {
+  [...e.target.files].forEach(uploadFile);
+});
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  [...e.dataTransfer.files].forEach(uploadFile);
+});
+</script>
+</body>
+</html>
