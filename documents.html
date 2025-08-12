@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documents</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+  h1 { color: #333; }
+  .doc-list { list-style: none; padding: 0; }
+  .doc-list li { margin: 10px 0; }
+  .upload-note { background: #fff3cd; padding: 10px; border-radius: 5px; }
+  a { text-decoration: none; color: #007bff; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<h1>Documents</h1>
+
+<p class="upload-note">
+  📂 To add a document: Upload it to the <code>/docs</code> folder of this repository in GitHub.<br>
+  The document will appear here automatically after publishing.
+</p>
+
+<ul class="doc-list" id="docList">
+  <!-- JavaScript will populate this list -->
+</ul>
+
+<script>
+// Change this to your GitHub repo raw URL
+const repoDocsUrl = "https://api.github.com/repos/bhanucvk/bhanucvk.github.io/contents/docs";
+
+fetch(repoDocsUrl)
+  .then(response => response.json())
+  .then(files => {
+    const list = document.getElementById('docList');
+    files.forEach(file => {
+      if (file.type === "file") {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = file.download_url;
+        link.textContent = file.name;
+        link.target = "_blank";
+        li.appendChild(link);
+        list.appendChild(li);
+      }
+    });
+  })
+  .catch(err => {
+    console.error("Error loading documents:", err);
+    document.getElementById('docList').innerHTML = "<li>Unable to load documents</li>";
+  });
+</script>
+
+</body>
+</html>
