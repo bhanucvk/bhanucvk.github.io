@@ -12,20 +12,24 @@
 
     <script>
         const repoOwner = "bhanucvk";
-        const repoName = "bhanucvk.github.io";
+        const repoName = "bhanucvk.github.io"; // repo name for API
         const folderPath = "assignments";
-        const siteBaseURL = `https://${repoOwner}.github.io/${repoName}/${folderPath}`;
+        const siteBaseURL = `https://${repoOwner}.github.io/${folderPath}`;
 
         fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`)
             .then(response => response.json())
             .then(data => {
                 const list = document.getElementById("file-list");
+                if (!Array.isArray(data)) {
+                    list.innerHTML = "No files found.";
+                    return;
+                }
                 data.forEach(file => {
                     if (file.type === "file") {
                         const li = document.createElement("li");
                         const a = document.createElement("a");
 
-                        // Open in browser instead of downloading
+                        // Link to GitHub Pages version so it opens in browser
                         a.href = `${siteBaseURL}/${file.name}`;
                         a.textContent = file.name;
                         a.target = "_blank";
@@ -42,4 +46,3 @@
     </script>
 </body>
 </html>
-
