@@ -7,13 +7,14 @@
 </head>
 <body>
     <h1>Assignments</h1>
-    <p>Click to download:</p>
+    <p>Click to view:</p>
     <ul id="file-list"></ul>
 
     <script>
         const repoOwner = "bhanucvk";
         const repoName = "bhanucvk.github.io";
         const folderPath = "assignments";
+        const siteBaseURL = `https://${repoOwner}.github.io/${repoName}/${folderPath}`;
 
         fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`)
             .then(response => response.json())
@@ -23,9 +24,12 @@
                     if (file.type === "file") {
                         const li = document.createElement("li");
                         const a = document.createElement("a");
-                        a.href = file.download_url;
+
+                        // Open in browser instead of downloading
+                        a.href = `${siteBaseURL}/${file.name}`;
                         a.textContent = file.name;
                         a.target = "_blank";
+
                         li.appendChild(a);
                         list.appendChild(li);
                     }
@@ -38,3 +42,4 @@
     </script>
 </body>
 </html>
+
